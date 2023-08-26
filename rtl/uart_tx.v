@@ -3,9 +3,9 @@
 // Design Name: UART Transmitter
 // Module Name: uart_tx
 // Description: 
-//  An 8-bit data, 1-bit stop UART transmitter running at 9600 baud.
+//  An 8-bit data, 1-bit stop, 1-bit parity UART transmitter running at 9600
+//  baud.
 //
-//  TODO: Add 1 parity bit
 //  TODO: Change baud rate to 115200
 //
 // Signals:
@@ -42,15 +42,17 @@ module uart_tx(
     parameter BAUD_RATE = 9600;
     parameter CYCLES_PER_BAUD = INPUT_CLOCK_FREQ / BAUD_RATE;
     
-    parameter reg [3:0] IDLE_STATE  = 4'h0;
-    parameter reg [3:0] START_STATE = 4'h1;
-    parameter reg [3:0] STOP_STATE  = 4'ha;
+    parameter reg [3:0] IDLE_STATE   = 4'h0;
+    parameter reg [3:0] START_STATE  = 4'h1;
+    parameter reg [3:0] PARITY_STATE = 4'ha;
+    parameter reg [3:0] STOP_STATE   = 4'hb;
     
-    reg [3:0] current_state /*verilator public*/;
+    reg [3:0] current_state;
     reg [3:0] next_state;
     reg [31:0] baud_counter;
     reg baud_strobe;
     reg [7:0] tx_shift;
+    reg [7:0] tx_hold;
 
     initial begin
         current_state = IDLE_STATE;
@@ -108,12 +110,14 @@ module uart_tx(
     always @ (posedge i_clk) begin
         if (!i_rst && baud_strobe) begin
             case (current_state)
-                START_STATE:
+                START_STATE: begin
                     tx_shift <= i_data;
-                IDLE_STATE, STOP_STATE:
+                    tx_hold <= i_data;
+                end
+                IDLE_STATE, PARITY_STATE, STOP_STATE:
                     tx_shift <= 0;
                 default:
-                    if (current_state < STOP_STATE)
+                    if (current_state < PARITY_STATE)
                         tx_shift <= tx_shift >> 1;
             endcase
         end
@@ -129,6 +133,8 @@ module uart_tx(
                     o_tx <= 1;
                 START_STATE:
                     o_tx <= 0;
+                PARITY_STATE:
+                    o_tx <= ^tx_hold;
                 default:
                     if (current_state < STOP_STATE)
                         o_tx <= tx_shift[0];

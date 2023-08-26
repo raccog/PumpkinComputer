@@ -85,6 +85,19 @@ void test_transmit(unsigned &tick_counter, Vuart_tx *tb, VerilatedVcdC *tfp,
         assert(tb->o_tx == expected_tx);
     }
 
+    // Parity bit
+    uint8_t parity = 0;
+    for (int i = 0; i < 8; ++i) {
+        if ((data >> i) & 1 == 1) {
+            parity += 1;
+        }
+    }
+    parity %= 2;
+    tickBaud(tick_counter, tb, tfp, 1);
+    VPRINTF("PARITY TX: %d (expected: %d)\n", tb->o_tx, parity);
+    assert(tb->o_busy == 1);
+    assert(tb->o_tx == parity);
+
     // Stop bit
     tickBaud(tick_counter, tb, tfp, 1);
     VPRINTF("STOP TX: %d (expected: 1)\n", tb->o_tx);
@@ -98,7 +111,7 @@ int main(int argc, char **argv) {
 
     Vuart_tx *tb = new Vuart_tx;
 
-    VPRINTF("Starting test bench\n");
+    VPRINTF("Starting test bench for `uart_tx`\n");
 
     unsigned tick_counter = 1;
 
@@ -150,4 +163,6 @@ int main(int argc, char **argv) {
     VPRINTF("IDLE TX: %d (expected: 1)\n", tb->o_tx);
     assert(tb->o_busy == 0);
     assert(tb->o_tx == 1);
+
+    VPRINTF("Success: `uart_tx`\n");
 }
