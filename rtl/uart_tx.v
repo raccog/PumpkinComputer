@@ -68,15 +68,18 @@ module uart_tx(
     always @ (*) begin
         if (i_rst)
             next_state = IDLE_STATE;
-        else if (current_state == IDLE_STATE || current_state == STOP_STATE) begin
-            if (i_start)
-                next_state = START_STATE;
-            else
-                next_state = IDLE_STATE;
-        end else if (current_state < STOP_STATE)
-            next_state = current_state + 1;
-        else
-            next_state = IDLE_STATE;
+        else case (current_state)
+            IDLE_STATE, STOP_STATE:
+                if (i_start)
+                    next_state = START_STATE;
+                else
+                    next_state = IDLE_STATE;
+            default:
+                if (current_state < STOP_STATE)
+                    next_state = current_state + 1;
+                else
+                    next_state = IDLE_STATE;
+        endcase
     end
     
     // Baud counter
