@@ -5,6 +5,10 @@ CC_ARGS ?= -Wall -O2
 all: $(BUILD_DIR)/uart_tx
 .PHONY: all
 
+book-serve:
+	mdbook serve book
+.PHONY: book-serve
+
 clean:
 	rm -rf $(BUILD_DIR)
 .PHONY: clean
