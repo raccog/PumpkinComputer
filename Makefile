@@ -1,6 +1,9 @@
 BUILD_DIR ?= build
 SIMULATOR_ARGS ?= -v
 CC_ARGS ?= -Wall -O2
+ifdef DEBUG
+	CC_ARGS += -NDEBUG
+endif
 
 all: $(BUILD_DIR)/uart_tx
 .PHONY: all
@@ -22,6 +25,7 @@ simulate-uart_tx: $(BUILD_DIR)/uart_tx
 
 uart_tx.vcd: $(BUILD_DIR)/uart_tx
 	$< $(SIMULATOR_ARGS)
+.PRECIOUS: uart_tx.vcd
 
 open-vcd-uart_tx: uart_tx.vcd
 	gtkwave $<
