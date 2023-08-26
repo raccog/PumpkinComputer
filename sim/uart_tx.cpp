@@ -2,17 +2,16 @@
 
 #include "sim_common.h"
 
+
 // 100 MHz System Clock Rate
 const unsigned SYSTEM_CLOCK_RATE = (100 * 1000 * 1000);
 // 9600 UART Baud Rate
 const unsigned BAUD_RATE = 9600;
-const unsigned CYCLES_PER_BAUD = 100000000 / BAUD_RATE;
+const unsigned CYCLES_PER_BAUD = SYSTEM_CLOCK_RATE / BAUD_RATE;
 
 void tickBaud(MainTestBench<Vuart_tx> &tb, unsigned baud_ticks) {
     for (unsigned i = 0; i < baud_ticks; ++i) {
-        for (unsigned k = 0; k < CYCLES_PER_BAUD; ++k) {
-            tb.tick();
-        }
+        tb.tick(CYCLES_PER_BAUD + 1);
     }
 }
 
@@ -21,14 +20,16 @@ void test_transmit(MainTestBench<Vuart_tx> &tb, uint8_t data, bool continuous) {
     sig->i_data = data;
     sig->i_start = 1;
 
-    // Start bit (takes 2 baud ticks to register change from [i_start] and move out of
-    // idle state)
+    // Start bit
+    // If idle, takes 2 clock ticks to register change from [i_start] and move out of
+    // idle state
     if (!sig->o_busy) {
-        tickBaud(tb, 1);
         VPRINTF("IDLE TX: %d (expected: 1)\n", sig->o_tx);
         assert(sig->o_tx == 1);
+        tb.tick(2);
+    } else {
+        tickBaud(tb, 1);
     }
-    tickBaud(tb, 1);
     VPRINTF("START TX: %d (expected: 0)\n", sig->o_tx);
     assert(sig->o_busy == 1);
     assert(sig->o_tx == 0);

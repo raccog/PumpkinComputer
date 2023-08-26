@@ -60,11 +60,11 @@ module uart_tx(
         baud_counter = 0;
         baud_strobe = 0;
         tx_shift = 0;
-        o_tx = 0;
+        o_tx = 1;
         o_busy = 0;
     end
     
-    // Set next state
+    // Set next state whenever inputs change
     always @ (*) begin
         if (i_rst)
             next_state = IDLE_STATE;
@@ -82,9 +82,15 @@ module uart_tx(
         endcase
     end
     
-    // Baud counter
+    // Baud counter (only runs when not idle)
     always @ (posedge i_clk) begin
-        if (baud_counter >= CYCLES_PER_BAUD) begin
+        if (current_state == IDLE_STATE) begin
+            if (i_start)
+                baud_strobe <= 1;
+            else
+                baud_strobe <= 0;
+            baud_counter <= 0;
+        end else if (baud_counter >= CYCLES_PER_BAUD) begin
             baud_strobe <= 1'b1;
             baud_counter <= 0;
         end else begin
@@ -97,7 +103,7 @@ module uart_tx(
     always @ (posedge i_clk) begin
         if (i_rst)
             current_state <= IDLE_STATE;
-        else if (baud_strobe)
+        else if (baud_strobe || (current_state == IDLE_STATE && i_start))
             current_state <= next_state;
     end
     
@@ -105,7 +111,7 @@ module uart_tx(
     always @ (posedge i_clk) begin
         if (i_rst)
             o_busy <= 0;
-        else if (baud_strobe)
+        else
             o_busy <= (current_state >= START_STATE && current_state <= STOP_STATE);
     end
     

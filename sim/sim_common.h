@@ -42,6 +42,11 @@ public:
         m_vcd->flush();
         m_tickCount += 1;
     }
+    void tick(int ticks) {
+        for (int i = 0; i < ticks; ++i) {
+            tick();
+        }
+    }
     bool verbose() {return m_verbose;}
 private:
     std::shared_ptr<VerilatorTestBench> m_tb;
