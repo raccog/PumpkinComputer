@@ -28,7 +28,7 @@ uart_tx.vcd: $(BUILD_DIR)/uart_tx
 .PRECIOUS: uart_tx.vcd
 
 open-vcd-uart_tx: uart_tx.vcd
-	gtkwave $<
+	gtkwave $< >/dev/null 2>&1 &
 .PHONY: open-vcd-uart_tx
 
 $(BUILD_DIR)/verilated.o: /usr/share/verilator/include/verilated.cpp \
