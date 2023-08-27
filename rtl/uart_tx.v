@@ -51,18 +51,9 @@ module uart_tx(
     reg baud_strobe;
     reg [7:0] tx_shift;
     reg [7:0] tx_hold;
-
-    initial begin
-        current_state = IDLE_STATE;
-        next_state = IDLE_STATE;
-        baud_counter = 0;
-        baud_strobe = 0;
-        tx_shift = 0;
-        o_tx = 1;
-        o_busy = 0;
-    end
     
     // Set next state whenever inputs change
+    initial next_state = IDLE_STATE;
     always @ (*) begin
         if (i_rst)
             next_state = IDLE_STATE;
@@ -81,6 +72,8 @@ module uart_tx(
     end
     
     // Baud counter (only runs when not idle)
+    initial baud_counter = 0;
+    initial baud_strobe = 0;
     always @ (posedge i_clk) begin
         if (current_state == IDLE_STATE) begin
             if (i_start)
@@ -98,6 +91,7 @@ module uart_tx(
     end
     
     // State transitions
+    initial current_state = IDLE_STATE;
     always @ (posedge i_clk) begin
         if (i_rst)
             current_state <= IDLE_STATE;
@@ -106,6 +100,7 @@ module uart_tx(
     end
     
     // Set o_busy
+    initial o_busy = 0;
     always @ (posedge i_clk) begin
         if (i_rst)
             o_busy <= 0;
@@ -114,6 +109,8 @@ module uart_tx(
     end
     
     // Shift data into register
+    initial tx_shift = 0;
+    initial tx_hold = 0;
     always @ (posedge i_clk) begin
         if (!i_rst && baud_strobe) begin
             case (current_state)
@@ -131,6 +128,7 @@ module uart_tx(
     end
     
     // Toggle tx_data
+    initial o_tx = 1;
     always @ (posedge i_clk) begin
         if (i_rst)
             o_tx <= 1;
