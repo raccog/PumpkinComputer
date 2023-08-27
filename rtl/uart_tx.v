@@ -3,10 +3,8 @@
 // Design Name: UART Transmitter
 // Module Name: uart_tx
 // Description: 
-//  An 8-bit data, 1-bit stop, 1-bit parity UART transmitter running at 9600
+//  An 8-bit data, 1-bit stop, 1-bit parity UART transmitter running at 115200
 //  baud.
-//
-//  TODO: Change baud rate to 115200
 //
 // Signals:
 //  - i_clk: The clock signal to run this UART. It must be running at 100 MHz.
@@ -39,7 +37,7 @@ module uart_tx(
     );
     
     parameter INPUT_CLOCK_FREQ = 100_000_000;
-    parameter BAUD_RATE = 9600;
+    parameter BAUD_RATE = 115200;
     parameter CYCLES_PER_BAUD = INPUT_CLOCK_FREQ / BAUD_RATE;
     
     parameter reg [3:0] IDLE_STATE   = 4'h0;

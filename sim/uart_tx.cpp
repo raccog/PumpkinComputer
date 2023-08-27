@@ -5,8 +5,7 @@
 
 // 100 MHz System Clock Rate
 const unsigned SYSTEM_CLOCK_RATE = (100 * 1000 * 1000);
-// 9600 UART Baud Rate
-const unsigned BAUD_RATE = 9600;
+const unsigned BAUD_RATE = 115200;
 const unsigned CYCLES_PER_BAUD = SYSTEM_CLOCK_RATE / BAUD_RATE;
 
 void tickBaud(MainTestBench<Vuart_tx> &tb, unsigned baud_ticks) {
