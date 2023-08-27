@@ -6,28 +6,21 @@ host debugger such as gdb.
 This on-chip debugger will support the minimal [RISC-V External Debug Support](https://riscv.org/wp-content/uploads/2019/03/riscv-debug-release.pdf) v0.13.2
 along with some optional extensions.
 
-## Debug Translator (DT) and Debug Transport Hardware (DTH)
+## Description
+
+The goal of the on-chip debuger is to support connecting to GDB through OpenOCD. 
+
+## Debug Translator (DT) and Debug Transport Module (DTM)
 
 A Debug Translator, such as OpenOCD, will be used to
-transfer data from the host to the Debug Transport Hardware, which will be a simple
-UART module.
+transfer data from the host to the Debug Transport Module, which will be a JTAG TAP
+conforming to IEEE STD 1149.1.
 
-### UART Description
+### JTAG Description
 
-TODO: Figure out how I might use OpenOCD to communicate with a DM through UART.
-
-The UART will use 8 data bits, 1 parity bit, and 1 stop bit. It will use a baud rate of
-115200, TODO: this might be variable in the future. It will have two 16-byte FIFOs, one
-for transmitting and one for receiving. This UART will connect to the DTM.
-
-## Debug Transport Module (DTM)
-
-The initial Debug Transport Module will be simple, as the Debug Module will
-only be accessed by the UART. JTAG might be beneficial in the future.
-
-## Debug Module Interface (DMI)
-
-The Debug Module Interface will be a point-to-point Wishbone b4 bus.
+The JTAG TAP will provide a connection that can be accessed by OpenOCD to connect to the
+RISC-V Debug Module. It will connect directly to the Debug Module; making up the Debug Module
+Interface (DMI) connection.
 
 ## Debug Module (DM)
 
