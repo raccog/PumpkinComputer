@@ -14,6 +14,6 @@ The operating system should have the following capabilities:
 
 These capabilities are purposefully vague, as I have not made my choices for the implementations of each capability yet.
 
-## Timeline
+## Development Plan
 
 Though I am currently focusing on the CPU, I can start the operating system before the CPU is finished. To do this, I would use QEMU as a simulated version of my CPU design.
