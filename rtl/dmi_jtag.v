@@ -23,6 +23,48 @@ module dmi_jtag
     input wire i_td,
     output wire o_td
 );
+    wire select_dmi, capture, shift, update;
+    wire tap_tdo;
 
+    reg [33+DMI_ADDR_WIDTH:0] r_dmi, r_shift;
+    reg o_td_latch;
+
+    // TODO: Fix if it switches to o_td_latch before the shift register is
+    // latched
+    assign o_td = (select_dmi) ? o_td_latch : tap_tdo;
+
+    initial r_shift = 0;
+    always @ (posedge i_tck) begin
+        if (select_dmi)
+            if (capture)
+                r_shift <= r_dmi;
+            else if (shift)
+                r_shift <= {i_td, r_shift[33+DMI_ADDR_WIDTH:1]};
+    end
+
+    initial o_td_latch = 0;
+    always @ (negedge i_tck) begin
+        if (select_dmi && shift)
+            o_td_latch <= r_shift[0];
+    end
+
+    initial r_dmi = 0;
+    always @ (negedge i_tck) begin
+        if (select_dmi && update)
+            r_dmi <= r_shift;
+    end
+
+    dmi_jtag_tap #(
+        .IR_WIDTH(IR_WIDTH)
+    ) h_dmi_jtag_tap (
+        .i_tck,
+        .i_tms,
+        .i_td,
+        .o_td(tap_tdo),
+        .o_select_dmi(select_dmi),
+        .o_capture(capture),
+        .o_shift(shift),
+        .o_update(update)
+    );
 
 endmodule

@@ -16,12 +16,15 @@
 // TODO: Implement interface to DMI
 
 module dmi_jtag_tap
-    #(parameter IR_WIDTH = 5,
-    DMI_ADDR_WIDTH = 7) (
+    #(parameter IR_WIDTH = 5) (
     input wire i_tck,
     input wire i_tms,
     input wire i_td,
-    output wire o_td
+    output wire o_td,
+    output wire o_select_dmi,
+    output wire o_capture,
+    output wire o_shift,
+    output wire o_update
 );
     /* verilator lint_off UNUSEDPARAM */
     localparam [3:0]
@@ -53,8 +56,12 @@ module dmi_jtag_tap
     reg [3:0] w_next_state, r_current_state;
     reg [IR_WIDTH-1:0] r_instruction;
     reg r_tdo_latch;
-    reg [31:0] r_idcode, r_dtmcs;
-    reg [DMI_ADDR_WIDTH+33:0] r_dmi, r_shift;
+    reg [31:0] r_idcode, r_dtmcs, r_shift;
+
+    assign o_select_dmi = (r_instruction == DMI);
+    assign o_capture = (r_current_state == CAPTURE_DR);
+    assign o_shift = (r_current_state == SHIFT_DR);
+    assign o_update = (r_current_state == UPDATE_DR);
 
     // Next state logic
     initial w_next_state = TEST_LOGIC_RESET;
@@ -136,7 +143,7 @@ module dmi_jtag_tap
     end
 
     // TODO: Fill out idcode fields
-    initial r_idcode = 0;
+    initial r_idcode = 32'hffffffff;     // Custom IDCODE
     initial r_shift = 0;
     always @ (posedge i_tck) begin
         case (r_current_state)
@@ -147,20 +154,16 @@ module dmi_jtag_tap
             CAPTURE_DR:
                 case (r_instruction)
                     IDCODE:
-                        r_shift[31:0] <= r_idcode;
+                        r_shift <= r_idcode;
                     DTMCS:
-                        r_shift[31:0] <= r_dtmcs;
-                    DMI:
-                        r_shift <= r_dmi;
+                        r_shift <= r_dtmcs;
                     default:
                         r_shift <= 0;
                 endcase
             SHIFT_DR:
                 case (r_instruction)
                     IDCODE, DTMCS:
-                        r_shift[31:0] <= {i_td, r_shift[31:1]};
-                    DMI:
-                        r_shift <= {i_td, r_shift[DMI_ADDR_WIDTH+33:1]};
+                        r_shift <= {i_td, r_shift[31:1]};
                     default:
                         r_shift <= r_shift;
                 endcase
@@ -183,14 +186,10 @@ module dmi_jtag_tap
 
     // TODO: Fill out dtmcs fields
     initial r_dtmcs = 0;
-    // TODO: Initialize dmi fields
-    initial r_dmi = 0;
     always @ (negedge i_tck) begin
         if (r_current_state == UPDATE_DR)
             if (r_instruction == DTMCS)
-                r_dtmcs <= r_shift[31:0];
-            else if (r_instruction == DMI)
-                r_dmi <= r_shift;
+                r_dtmcs <= r_shift;
     end
 
     initial r_tdo_latch = 1'b0;
