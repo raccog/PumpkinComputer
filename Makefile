@@ -5,7 +5,13 @@ ifdef DEBUG
 	CC_ARGS += -NDEBUG
 endif
 
-all: $(BUILD_DIR)/uart_tx
+MODULES := dmi_jtag uart_tx
+EXECUTABLES := $(patsubst %,$(BUILD_DIR)/%_sim,$(MODULES))
+SIMULATOR_TARGETS := $(addprefix simulate-,$(MODULES))
+VCD_FILES := $(addsuffix .vcd,$(MODULES))
+VCD_TARGETS := $(addprefix open-vcd-,$(MODULES))
+
+all: $(EXECUTABLES)
 .PHONY: all
 
 book-serve:
@@ -16,32 +22,33 @@ clean:
 	rm -rf $(BUILD_DIR)
 .PHONY: clean
 
-simulate-all: simulate-uart_tx
+simulate-all: $(SIMULATOR_TARGETS)
 .PHONY: simulate-all	
 
-simulate-uart_tx: $(BUILD_DIR)/uart_tx
+simulate-%: $(BUILD_DIR)/%_sim
 	$< $(SIMULATOR_ARGS)
-.PHONY: simulate-uart_tx
+.PHONY: simulate-*
 
-uart_tx.vcd: $(BUILD_DIR)/uart_tx
+%.vcd: $(BUILD_DIR)/%_sim
 	$< $(SIMULATOR_ARGS)
-.PRECIOUS: uart_tx.vcd
+.PRECIOUS: *.vcd
 
-open-vcd-uart_tx: uart_tx.vcd
+open-vcd-%: %.vcd
 	gtkwave $< >/dev/null 2>&1 &
-.PHONY: open-vcd-uart_tx
+.PHONY: open-vcd-*
 
 $(BUILD_DIR)/verilated.o: /usr/share/verilator/include/verilated.cpp \
 		/usr/share/verilator/include/verilated_threads.cpp \
 		/usr/share/verilator/include/verilated_vcd_c.cpp
+	-mkdir -p "$(@D)"
 	g++ -shared -fPIC -I /usr/share/verilator/include \
 		-I /usr/share/verilator/include/vltstd \
 		$^ \
 		-O2 \
 		-o "$@"
 
-$(BUILD_DIR)/uart_tx: sim/uart_tx.cpp sim/sim_common.h \
-	$(BUILD_DIR)/obj_dir/Vuart_tx__ALL.a $(BUILD_DIR)/verilated.o
+$(BUILD_DIR)/%_sim: sim/%.cpp sim/sim_common.h \
+	$(BUILD_DIR)/obj_dir/V%__ALL.a $(BUILD_DIR)/verilated.o
 	-mkdir -p "$(@D)"
 	g++ -I /usr/share/verilator/include \
 		-I $(BUILD_DIR)/obj_dir/ \
@@ -51,8 +58,10 @@ $(BUILD_DIR)/uart_tx: sim/uart_tx.cpp sim/sim_common.h \
 		$(CC_ARGS) \
 		-o "$@"
 
-$(BUILD_DIR)/obj_dir/Vuart_tx__ALL.a: rtl/uart_tx.v
+$(BUILD_DIR)/obj_dir/V%.mk: rtl/%.v rtl/%*.v
 	-mkdir -p "$(@D)"
-	verilator --Mdir "$(@D)" -Wall --trace -cc "$<"
-	make -f Vuart_tx.mk -C "$(BUILD_DIR)/obj_dir"
+	verilator --Mdir "$(@D)" -Wall --trace -cc $^
+
+$(BUILD_DIR)/obj_dir/V%__ALL.a: $(BUILD_DIR)/obj_dir/V%.mk
+	make -f "$(<F)" -C "$(BUILD_DIR)/obj_dir"
 
