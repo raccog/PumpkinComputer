@@ -14,6 +14,8 @@
 `default_nettype none
 
 // TODO: Implement interface to DMI
+// TODO: Maybe combine this with dmi_jtag top level module, as they don't
+// really need to be separate
 
 module dmi_jtag_tap
     #(parameter IR_WIDTH = 5) (
