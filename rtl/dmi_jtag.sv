@@ -86,7 +86,22 @@ module dmi_jtag
     logic o_td_latch;
     logic [1:0] dmistat;
 
+    logic test_logic_reset, capture_dr, capture_ir, shift_dr,
+        shift_ir, update_dr, update_ir;
+    logic select_idcode, select_dtmcs, select_dmi;
+
     assign o_td = o_td_latch;
+
+    assign test_logic_reset = (current_state == TEST_LOGIC_RESET);
+    assign capture_dr = (current_state == CAPTURE_DR);
+    assign capture_ir = (current_state == CAPTURE_IR);
+    assign shift_dr = (current_state == SHIFT_DR);
+    assign shift_ir = (current_state == SHIFT_IR);
+    assign update_dr = (current_state == UPDATE_DR);
+    assign update_ir = (current_state == UPDATE_IR);
+    assign select_idcode = (current_instruction == IDCODE);
+    assign select_dtmcs = (current_instruction == DTMCS);
+    assign select_dmi = (current_instruction == DMI);
 
     always_comb begin
         case (current_state)
