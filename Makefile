@@ -58,7 +58,7 @@ $(BUILD_DIR)/%_sim: sim/%.cpp sim/sim_common.h \
 		$(CC_ARGS) \
 		-o "$@"
 
-$(BUILD_DIR)/obj_dir/V%.mk: rtl/%.v rtl/%*.v
+$(BUILD_DIR)/obj_dir/V%.mk: rtl/%.sv rtl/%*.sv
 	-mkdir -p "$(@D)"
 	verilator --Mdir "$(@D)" -Wall --trace -cc $^
 
