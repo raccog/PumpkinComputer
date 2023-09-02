@@ -37,6 +37,18 @@ module dmi_jtag
         BYPASS1 = 'h1f
     } jtag_instruction_e;
 
+    typedef enum logic [1:0] {
+        NO_ERROR,
+        OPERATION_FAILED,
+        ALREADY_IN_PROGRESS
+    } jtag_dmi_error_e;
+
+    typedef enum logic [1:0] {
+        IDLE,
+        READ,
+        WRITE
+    } jtag_dmi_state_e;
+
     typedef struct packed {
         logic _reserved;
         logic [10:0] manufid;
@@ -62,7 +74,7 @@ module dmi_jtag
     } jtag_dmi_t;
 
     localparam int unsigned DMI_REG_WIDTH = 33+DMI_ADDR_WIDTH;
-    localparam jtag_idcode_t REG_IDCODE = '{
+    localparam jtag_idcode_t IDCODE_RESET = '{
         version:'hf,
         partnumber:'hffff,
         manufid:'h7ff,
@@ -81,16 +93,22 @@ module dmi_jtag
 
     jtag_tap_state_e next_state, current_state;
     jtag_instruction_e current_instruction;
+    logic [IR_WIDTH-1:0] reg_instruction;
+    jtag_idcode_t reg_idcode;
+    jtag_dtmcs_t reg_dtmcs;
     jtag_dmi_t reg_dmi;
-    logic [DMI_REG_WIDTH:0] reg_shift;
-    logic o_td_latch;
-    logic [1:0] dmistat;
+    logic tdo_latch;
+
+    jtag_dmi_state_e dmi_state;
+    jtag_dmi_error_e dmi_error;
+    logic [31:0] dmi_data;
+    logic [DMI_ADDR_WIDTH-1:0] dmi_address;
 
     logic test_logic_reset, capture_dr, capture_ir, shift_dr,
         shift_ir, update_dr, update_ir;
     logic select_idcode, select_dtmcs, select_dmi;
 
-    assign o_td = o_td_latch;
+    assign o_td = tdo_latch;
 
     assign test_logic_reset = (current_state == TEST_LOGIC_RESET);
     assign capture_dr = (current_state == CAPTURE_DR);
@@ -143,68 +161,91 @@ module dmi_jtag
 
     initial current_instruction = IDCODE;
     always_ff @ (negedge i_tck) begin
-        case (current_state)
-            TEST_LOGIC_RESET:
-                current_instruction <= IDCODE;
-            UPDATE_IR:
-                current_instruction <= jtag_instruction_e'(reg_shift[IR_WIDTH-1:0]);
-            default: begin end
-        endcase
+        if (test_logic_reset)
+            current_instruction <= IDCODE;
+        else if (update_ir)
+            current_instruction <= jtag_instruction_e'(reg_instruction);
     end
 
-    initial reg_shift = 0;
+    initial reg_instruction = 0;
     always_ff @ (posedge i_tck) begin
-        case (current_state)
-            CAPTURE_IR:
-                reg_shift[IR_WIDTH-1:0] <= current_instruction;
-            CAPTURE_DR:
-                case (current_instruction)
-                    DMI:
-                        reg_shift <= reg_dmi;
-                    IDCODE:
-                        reg_shift[31:0] <= REG_IDCODE;
-                    DTMCS:
-                        // TODO: Update idle with minimum cycles (currently set to
-                        // 1 cycle in Run-Test/Idle)
-                        // TODO: Ensure dmistat gets set properly here
-                        reg_shift[31:0] <= DTMCS_RESET | (jtag_dtmcs_t'(dmistat) << 10);
-                    default: begin end
-                endcase
-            SHIFT_IR:
-                reg_shift[IR_WIDTH-1:0] <= {i_td, reg_shift[IR_WIDTH-1:1]};
-            SHIFT_DR:
-                case (current_instruction)
-                    DMI:
-                        reg_shift <= {i_td, reg_shift[DMI_REG_WIDTH:1]};
-                    IDCODE, DTMCS:
-                        reg_shift[31:0] <= {i_td, reg_shift[31:1]};
-                    default: begin end
-                endcase
-            default: begin end
-        endcase
+        if (test_logic_reset || capture_ir)
+            reg_instruction <= IR_WIDTH'(4'b0101);
+        else if (shift_ir)
+            reg_instruction <= {i_td, reg_instruction[IR_WIDTH-1:1]};
     end
 
-    initial o_td_latch = 0;
-    always_ff @ (negedge i_tck) begin
-        if (current_state == SHIFT_IR || current_state == SHIFT_DR)
-            o_td_latch <= reg_shift[0];
-        else
-            o_td_latch <= 0;
+    initial reg_idcode = IDCODE_RESET;
+    always_ff @ (posedge i_tck) begin
+        if (test_logic_reset)
+            reg_idcode <= IDCODE_RESET;
+        else if (select_idcode)
+            if (capture_dr)
+                reg_idcode <= IDCODE_RESET;
+            else if (shift_dr)
+                reg_idcode <= {i_td, reg_idcode[31:1]};
+    end
+
+    initial reg_dtmcs = DTMCS_RESET;
+    always_ff @ (posedge i_tck) begin
+        if (test_logic_reset)
+            reg_dtmcs <= DTMCS_RESET;
+        else if (select_dtmcs)
+            if (capture_dr)
+                reg_dtmcs <= DTMCS_RESET | (jtag_dtmcs_t'(dmi_error) << 10);
+            else if (shift_dr)
+                reg_dtmcs <= {i_td, reg_dtmcs[31:1]};
     end
 
     initial reg_dmi = 0;
+    always_ff @ (posedge i_tck) begin
+        if (test_logic_reset)
+            reg_dmi <= 0;
+        else if (select_dmi)
+            if (capture_dr)
+                // TODO: Update data from DMI transaction here
+                reg_dmi <= reg_dmi;
+            else if (shift_dr)
+                reg_dmi <= {i_td, reg_dmi[DMI_REG_WIDTH:1]};
+    end
+
+    initial tdo_latch = 1'b0;
     always_ff @ (negedge i_tck) begin
-        if (current_state == UPDATE_DR)
-            if (current_instruction == DMI)
-                // TODO: Process DMI transaction here
-                // TODO: Update dmistat with error codes
-                reg_dmi <= reg_shift;
-            else if (current_instruction == DTMCS)
-                // TODO: Cancel DMI transaction when dmihardreset is written
-                if (reg_shift[16] || reg_shift[17]) begin
-                    dmistat <= 0;
-                    reg_dmi <= 0;
+        tdo_latch <= 1'b0;
+        if (shift_ir)
+            tdo_latch <= reg_instruction[0];
+        else if (shift_dr)
+            if (select_idcode)
+                tdo_latch <= reg_idcode[0];
+            else if (select_dtmcs)
+                tdo_latch <= reg_dtmcs[0];
+            else if (select_dmi)
+                tdo_latch <= reg_dmi[0];
+    end
+
+    initial dmi_state = IDLE;
+    initial dmi_error = NO_ERROR;
+    initial dmi_data = 0;
+    initial dmi_address = 0;
+    always_ff @ (negedge i_tck) begin
+        if (update_dr)
+            if (select_dtmcs)
+                if (reg_dtmcs.dmireset)
+                    dmi_error <= NO_ERROR;
+                else if (reg_dtmcs.dmihardreset) begin
+                    dmi_error <= NO_ERROR;
+                    dmi_state <= IDLE;
+                    dmi_data <= 0;
+                    dmi_address <= 0;
                 end
+            else if (select_dmi) begin
+                // TODO: Ensure DMI is not in the middle of a transaction
+                dmi_error <= OPERATION_FAILED;
+                dmi_state <= jtag_dmi_state_e'(reg_dmi.op);
+                dmi_data <= reg_dmi.data;
+                dmi_address <= reg_dmi.address;
+                // TODO: Start DMI transaction
+            end
     end
 
 endmodule
