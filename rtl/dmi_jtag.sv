@@ -91,70 +91,31 @@ module dmi_jtag
     always_comb begin
         case (current_state)
             TEST_LOGIC_RESET:
-                if (i_tms)
-                    next_state = TEST_LOGIC_RESET;
-                else
-                    next_state = RUN_TEST_IDLE;
+                next_state = (i_tms) ? TEST_LOGIC_RESET : RUN_TEST_IDLE;
             RUN_TEST_IDLE:
-                if (i_tms)
-                    next_state = SELECT_DR_SCAN;
-                else
-                    next_state = RUN_TEST_IDLE;
+                next_state = (i_tms) ? SELECT_DR_SCAN : RUN_TEST_IDLE;
             SELECT_DR_SCAN:
-                if (i_tms)
-                    next_state = SELECT_IR_SCAN;
-                else
-                    next_state = CAPTURE_DR;
+                next_state = (i_tms) ? SELECT_DR_SCAN : CAPTURE_DR;
             CAPTURE_DR, SHIFT_DR:
-                if (i_tms)
-                    next_state = EXIT1_DR;
-                else
-                    next_state = SHIFT_DR;
+                next_state = (i_tms) ? EXIT1_DR : SHIFT_DR;
             EXIT1_DR:
-                if (i_tms)
-                    next_state = UPDATE_DR;
-                else
-                    next_state = PAUSE_DR;
+                next_state = (i_tms) ? UPDATE_DR : PAUSE_DR;
             PAUSE_DR:
-                if (i_tms)
-                    next_state = EXIT2_DR;
-                else
-                    next_state = PAUSE_DR;
+                next_state = (i_tms) ? EXIT2_DR : PAUSE_DR;
             EXIT2_DR:
-                if (i_tms)
-                    next_state = UPDATE_DR;
-                else
-                    next_state = SHIFT_DR;
+                next_state = (i_tms) ? UPDATE_DR : SHIFT_DR;
             UPDATE_DR, UPDATE_IR:
-                if (i_tms)
-                    next_state = SELECT_DR_SCAN;
-                else
-                    next_state = RUN_TEST_IDLE;
+                next_state = (i_tms) ? SELECT_DR_SCAN : RUN_TEST_IDLE;
             SELECT_IR_SCAN:
-                if (i_tms)
-                    next_state = TEST_LOGIC_RESET;
-                else
-                    next_state = CAPTURE_IR;
+                next_state = (i_tms) ? TEST_LOGIC_RESET : CAPTURE_IR;
             CAPTURE_IR, SHIFT_IR:
-                if (i_tms)
-                    next_state = EXIT1_IR;
-                else
-                    next_state = SHIFT_IR;
+                next_state = (i_tms) ? EXIT1_IR : SHIFT_IR;
             EXIT1_IR:
-                if (i_tms)
-                    next_state = UPDATE_IR;
-                else
-                    next_state = PAUSE_IR;
+                next_state = (i_tms) ? UPDATE_IR : PAUSE_IR;
             PAUSE_IR:
-                if (i_tms)
-                    next_state = EXIT2_IR;
-                else
-                    next_state = PAUSE_IR;
+                next_state = (i_tms) ? EXIT2_IR : PAUSE_IR;
             EXIT2_IR:
-                if (i_tms)
-                    next_state = UPDATE_IR;
-                else
-                    next_state = SHIFT_IR;
+                next_state = (i_tms) ? UPDATE_IR : SHIFT_IR;
             default:
                 next_state = TEST_LOGIC_RESET;
         endcase
