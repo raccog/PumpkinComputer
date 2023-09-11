@@ -4,13 +4,10 @@ The first set of software will be very minimal. The goal of this first set is to
 
 ## Program List
 
-- a nano-like text editor (if possible using a UART for I/O)
+- a nano-like text editor
 - a minimal shell language
 - grep implementation
+- some coreutils programs
 - resource monitor
 - calculator language
 - system log reader
-
-## Development Plan
-
-Though I am currently focusing on the CPU, I can start the userland programs by creating Linux userland examples.
