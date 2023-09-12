@@ -22,6 +22,8 @@ Top-level modules include:
 - System timer
 - Watchdog
 - Flash with SPI Interface
+- USB HID Host Controller
+- Ethernet Controller
 
 ### Modules' Purpose
 
@@ -36,10 +38,11 @@ The Wishbone system bus is required to access RAM and peripherals as memory-mapp
 RAM stores the running OS/userspace programs and provides a large enough space for
 working data sets. The on-chip debugger makes it much easier to debug the running OS
 and userspace programs. A mini UART provides a text-based interface. Similarly, the
-text-based VGA framebuffer provides a text interface using a VGA monitor (to make this interactive,
-I need to figure out how to support a keyboard. USB HID?). The system timer provides a running counter
+text-based VGA framebuffer provides a text interface using a VGA monitor. The USB HID controller
+provides a port for a keyboard. The system timer provides a running counter
 of how long it has been since the system started up. The watchdog can recover the system to a valid
 state if it ever gets stuck. The SPI-based flash interface will provide the operating system with
-persistent storage for a filesystem.
+persistent storage for a filesystem. The Ethernet controller provides internet access so that
+I can implement some interesting userspace programs.
 
 

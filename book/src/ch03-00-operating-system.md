@@ -12,6 +12,7 @@ The operating system should have the following capabilities:
 - Signals(?) for userland programs
 - Basic synchronization and IPC primitives
 - Drivers for the processing environment
+- TCP/IP networking stack
 
 These capabilities are purposefully vague, as I have not made my choices for the implementations of each capability yet.
 
