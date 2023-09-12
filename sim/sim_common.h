@@ -19,7 +19,7 @@ public:
         m_vcd->open((m_moduleName + ".vcd").c_str());
     }
 
-    std::shared_ptr<VerilatorTestBench> signals() {return m_tb;}
+    VerilatorTestBench *operator->() {return m_tb.get();}
     void parseArgs(int argc, char **argv) {
         // Check for verbose command argument
         if (argc > 1) {
@@ -49,7 +49,7 @@ public:
     }
     bool verbose() {return m_verbose;}
 private:
-    std::shared_ptr<VerilatorTestBench> m_tb;
+    std::unique_ptr<VerilatorTestBench> m_tb;
     std::unique_ptr<VerilatedVcdC> m_vcd;
     std::string m_moduleName;
     bool m_verbose;
