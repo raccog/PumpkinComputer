@@ -11,4 +11,6 @@ The first set of software will be very minimal. The goal of this first set is to
 - resource monitor
 - calculator language
 - system log reader
-- SMTP email client?
+- SMTP email client
+- telnet
+- FTP or similar file transfer method

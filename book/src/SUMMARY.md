@@ -8,3 +8,4 @@
 - [The Operating System](./ch03-00-operating-system.md)
 - [Userspace Environment](./ch04-00-userspace.md)
 
+[Appendix A - Development Information](./chA-00-development.md)
