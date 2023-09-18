@@ -91,7 +91,7 @@ module dmi_jtag
         _reserved1:'h0
     };
 
-    jtag_tap_state_e next_state, current_state /* verilator public_flat */;
+    jtag_tap_state_e next_state, current_state /* verilator public_flat_rd */;
     jtag_instruction_e current_instruction;
     logic [IR_WIDTH-1:0] reg_instruction;
     jtag_idcode_t reg_idcode;

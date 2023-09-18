@@ -6,6 +6,7 @@
 
 #include "verilated.h"
 #include "verilated_vcd_c.h"
+#include "verilated_vpi.h"
 
 #define VPRINTF(...) \
     if (tb.verbose()) printf(__VA_ARGS__)

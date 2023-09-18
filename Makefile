@@ -39,7 +39,8 @@ open-vcd-%: %.vcd
 
 $(BUILD_DIR)/verilated.o: /usr/share/verilator/include/verilated.cpp \
 		/usr/share/verilator/include/verilated_threads.cpp \
-		/usr/share/verilator/include/verilated_vcd_c.cpp
+		/usr/share/verilator/include/verilated_vcd_c.cpp \
+		/usr/share/verilator/include/verilated_vpi.cpp
 	-mkdir -p "$(@D)"
 	g++ -shared -fPIC -I /usr/share/verilator/include \
 		-I /usr/share/verilator/include/vltstd \
