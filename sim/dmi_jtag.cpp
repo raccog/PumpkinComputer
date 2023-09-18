@@ -51,6 +51,20 @@ enum JtagInstruction {
     BYPASS1 = 0x1f
 };
 
+struct JtagIdcode {
+    unsigned _reserved : 1;
+    unsigned manufid : 11;
+    unsigned partnumber : 16;
+    unsigned version : 4;
+} __attribute__ ((__packed__));
+
+const JtagIdcode IDCODE_RESET = {
+    ._reserved = 1,
+    .manufid = 0x7ff,
+    .partnumber = 0xffff,
+    .version = 0xf
+};
+
 JtagState jtagCurrentState() {
     return (JtagState)VPI_GET_INT("dmi_jtag.current_state");
 }
@@ -98,6 +112,21 @@ void loadInstruction(MainTestBench<Vdmi_jtag> &tb, JtagInstruction instruction) 
     assert(jtagCurrentState() == UPDATE_IR);
 }
 
+unsigned shiftData(MainTestBench<Vdmi_jtag> &tb, unsigned width, bool exit = false) {
+    unsigned reg = 0;
+    tb->i_tms = 0;
+    for (unsigned i = 0; i < width; ++i) {
+        reg <<= 1;
+        reg |= tb->o_td;
+
+        if (i == width - 1 && exit) {
+            tb->i_tms = 1;
+        }
+        tb.tick();
+    }
+    return reg;
+}
+
 int main(int argc, char **argv) {
     Verilated::commandArgs(argc, argv);
 
@@ -127,6 +156,32 @@ int main(int argc, char **argv) {
 
     // Assert current instruction updated to IDCODE
     assert(jtagCurrentInstruction() == IDCODE);
+
+    // Move to Shift-DR
+    tb->i_tms = 0;
+    tb.tick(2);
+    assert(jtagCurrentState() == SHIFT_DR);
+
+    // Shift in IDCODE register
+    JtagIdcode idcode;
+    idcode._reserved = shiftData(tb, 1);
+    assert(idcode._reserved == IDCODE_RESET._reserved);
+    unsigned manufid = shiftData(tb, 11);
+    idcode.manufid = manufid;
+    assert(manufid == IDCODE_RESET.manufid);
+    unsigned partnumber = shiftData(tb, 16);
+    idcode.partnumber = partnumber;
+    assert(partnumber == IDCODE_RESET.partnumber);
+    unsigned version = shiftData(tb, 4, true);
+    idcode.version = version;
+    assert(version == IDCODE_RESET.version);
+
+    // Move to Run-Test/Idle
+    tb->i_tms = 1;
+    tb.tick();
+    tb->i_tms = 0;
+    tb.tick();
+    assert(jtagCurrentState() == RUN_TEST_IDLE);
 
     return 0;
 }
