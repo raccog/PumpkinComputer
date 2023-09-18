@@ -92,8 +92,8 @@ module dmi_jtag
     };
 
     jtag_tap_state_e next_state, current_state /* verilator public_flat_rd */;
-    jtag_instruction_e current_instruction;
-    logic [IR_WIDTH-1:0] reg_instruction;
+    jtag_instruction_e current_instruction /* verilator public_flat_rd */;
+    logic [IR_WIDTH-1:0] reg_instruction /* verilator public_flat_rd */;
     jtag_idcode_t reg_idcode;
     jtag_dtmcs_t reg_dtmcs;
     jtag_dmi_t reg_dmi;
@@ -130,7 +130,7 @@ module dmi_jtag
             RUN_TEST_IDLE:
                 next_state = (i_tms) ? SELECT_DR_SCAN : RUN_TEST_IDLE;
             SELECT_DR_SCAN:
-                next_state = (i_tms) ? SELECT_DR_SCAN : CAPTURE_DR;
+                next_state = (i_tms) ? SELECT_IR_SCAN : CAPTURE_DR;
             CAPTURE_DR, SHIFT_DR:
                 next_state = (i_tms) ? EXIT1_DR : SHIFT_DR;
             EXIT1_DR:
@@ -172,7 +172,7 @@ module dmi_jtag
     initial reg_instruction = 0;
     always_ff @ (posedge i_clk) begin
         if (test_logic_reset || capture_ir)
-            reg_instruction <= IR_WIDTH'(4'b0101);
+            reg_instruction <= IR_WIDTH'(IDCODE);
         else if (shift_ir)
             reg_instruction <= {i_td, reg_instruction[IR_WIDTH-1:1]};
     end
