@@ -85,6 +85,27 @@ void resetJtag(MainTestBench<Vdmi_jtag> &tb) {
     assert(jtagCurrentState() == TEST_LOGIC_RESET);
 }
 
+unsigned shiftData(MainTestBench<Vdmi_jtag> &tb, unsigned width, unsigned dataIn = 0, bool exit = false) {
+    unsigned dataOut = 0;
+    tb->i_tms = 0;
+    for (unsigned i = 0; i < width; ++i) {
+        // Shift bit out
+        dataOut <<= 1;
+        dataOut |= tb->o_td;
+
+        // Shift bit in
+        tb->i_td = dataIn & 1;
+        dataIn >>= 1;
+
+        // Move to next state
+        if (i == width - 1 && exit) {
+            tb->i_tms = 1;
+        }
+        tb.tick();
+    }
+    return dataOut;
+}
+
 void loadInstruction(MainTestBench<Vdmi_jtag> &tb, JtagInstruction instruction) {
     // JTAG must be in the Select-IR-Scan state for this function
     assert(jtagCurrentState() == SELECT_IR_SCAN);
@@ -97,34 +118,11 @@ void loadInstruction(MainTestBench<Vdmi_jtag> &tb, JtagInstruction instruction) 
     assert((unsigned)jtagInstructionReg() == IDCODE);
 
     // Shift in instruction
-    unsigned shiftInstr = static_cast<unsigned>(instruction);
-    for (unsigned i = 0; i < IR_WIDTH; ++i) {
-        tb->i_td = shiftInstr & 1;
-        if (i == IR_WIDTH - 1) {
-            tb->i_tms = 1;
-        }
-        tb.tick();
-        shiftInstr >>= 1;
-    }
+    shiftData(tb, IR_WIDTH, static_cast<unsigned>(instruction), true);
 
     // Move to Update-IR
     tb.tick();
     assert(jtagCurrentState() == UPDATE_IR);
-}
-
-unsigned shiftData(MainTestBench<Vdmi_jtag> &tb, unsigned width, bool exit = false) {
-    unsigned reg = 0;
-    tb->i_tms = 0;
-    for (unsigned i = 0; i < width; ++i) {
-        reg <<= 1;
-        reg |= tb->o_td;
-
-        if (i == width - 1 && exit) {
-            tb->i_tms = 1;
-        }
-        tb.tick();
-    }
-    return reg;
 }
 
 int main(int argc, char **argv) {
@@ -172,7 +170,7 @@ int main(int argc, char **argv) {
     unsigned partnumber = shiftData(tb, 16);
     idcode.partnumber = partnumber;
     assert(partnumber == IDCODE_RESET.partnumber);
-    unsigned version = shiftData(tb, 4, true);
+    unsigned version = shiftData(tb, 4, 0, true);
     idcode.version = version;
     assert(version == IDCODE_RESET.version);
 
