@@ -63,6 +63,7 @@ public:
         // Abort if clock tick counter overflowed
         if (m_tickCount == UINT64_MAX) {
             std::cerr << "FATAL: Clock tick counter overflowed. Aborting.\n";
+            m_vcd->close();
             assert(m_tickCount != UINT64_MAX);
         }
         m_tickCount += 1;
