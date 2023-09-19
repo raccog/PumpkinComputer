@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <filesystem>
+#include <iostream>
 #include <memory>
 #include <string>
 
@@ -58,6 +59,11 @@ public:
         // Cleanup the clock tick
         if (flush) {
             m_vcd->flush();
+        }
+        // Abort if clock tick counter overflowed
+        if (m_tickCount == UINT64_MAX) {
+            std::cerr << "FATAL: Clock tick counter overflowed. Aborting.\n";
+            assert(m_tickCount != UINT64_MAX);
         }
         m_tickCount += 1;
     }
