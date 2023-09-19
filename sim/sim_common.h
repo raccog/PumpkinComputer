@@ -40,10 +40,7 @@ public:
         }
     }
     // Simulates a clock tick and records all signals to a VCD file.
-    // TODO: Add bool argument (default true) that controls whether this function
-    // flushes the VCD file.
-    void tick() {
-
+    void tick(bool flush = true) {
         // Eval right before clock edge
         m_tb->eval();
         m_vcd->dump(m_tickCount * 10 - 2);
@@ -59,15 +56,17 @@ public:
         m_vcd->dump(m_tickCount * 10 + 5);
 
         // Cleanup the clock tick
-        m_vcd->flush();
+        if (flush) {
+            m_vcd->flush();
+        }
         m_tickCount += 1;
     }
     // Simulates multiple clock ticks at once
-    // TODO: Only flush VCD file after for loop is done
     void tick(int ticks) {
         for (int i = 0; i < ticks; ++i) {
-            tick();
+            tick(false);
         }
+        m_vcd->flush();
     }
     // Returns true if running in verbose mode
     bool verbose() {return m_verbose;}
