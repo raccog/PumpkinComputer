@@ -10,6 +10,11 @@
 #include "verilated_vcd_c.h"
 #include "verilated_vpi.h"
 
+// To use a different clock signal name, define I_CLK before including this header
+#ifndef I_CLK
+#define I_CLK i_clk
+#endif
+
 #define VPRINTF(...) \
     if (tb.verbose()) printf(__VA_ARGS__)
 
@@ -47,12 +52,12 @@ public:
         m_vcd->dump(m_tickCount * 10 - 2);
 
         // Eval clock rising edge
-        m_tb->i_clk = 1;
+        m_tb->I_CLK = 1;
         m_tb->eval();
         m_vcd->dump(m_tickCount * 10);
 
         // Eval clock falling edge
-        m_tb->i_clk = 0;
+        m_tb->I_CLK = 0;
         m_tb->eval();
         m_vcd->dump(m_tickCount * 10 + 5);
 

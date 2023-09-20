@@ -1,6 +1,7 @@
 #include "Vdmi_jtag.h"
 #include <iostream>
 
+#define I_CLK i_tck
 #include "sim_common.h"
 
 // 100 MHz System Clock Rate

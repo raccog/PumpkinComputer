@@ -18,7 +18,7 @@
 module dmi_jtag
     #(parameter int unsigned IR_WIDTH = 5,
     parameter int unsigned DMI_ADDR_WIDTH = 7) (
-    input logic i_clk,  // i_tck
+    input logic i_tck,
     input logic i_tms,
     input logic i_td,
     output logic o_td
@@ -157,12 +157,12 @@ module dmi_jtag
     end
 
     initial current_state = TEST_LOGIC_RESET;
-    always_ff @ (posedge i_clk) begin
+    always_ff @ (posedge i_tck) begin
         current_state <= next_state;
     end
 
     initial current_instruction = IDCODE;
-    always_ff @ (negedge i_clk) begin
+    always_ff @ (negedge i_tck) begin
         if (test_logic_reset)
             current_instruction <= IDCODE;
         else if (update_ir)
@@ -170,7 +170,7 @@ module dmi_jtag
     end
 
     initial reg_instruction = 0;
-    always_ff @ (posedge i_clk) begin
+    always_ff @ (posedge i_tck) begin
         if (test_logic_reset || capture_ir)
             reg_instruction <= IR_WIDTH'(IDCODE);
         else if (shift_ir)
@@ -178,7 +178,7 @@ module dmi_jtag
     end
 
     initial reg_idcode = IDCODE_RESET;
-    always_ff @ (posedge i_clk) begin
+    always_ff @ (posedge i_tck) begin
         if (test_logic_reset)
             reg_idcode <= IDCODE_RESET;
         else if (select_idcode)
@@ -189,7 +189,7 @@ module dmi_jtag
     end
 
     initial reg_dtmcs = DTMCS_RESET;
-    always_ff @ (posedge i_clk) begin
+    always_ff @ (posedge i_tck) begin
         if (test_logic_reset)
             reg_dtmcs <= DTMCS_RESET;
         else if (select_dtmcs)
@@ -200,7 +200,7 @@ module dmi_jtag
     end
 
     initial reg_dmi = 0;
-    always_ff @ (posedge i_clk) begin
+    always_ff @ (posedge i_tck) begin
         if (test_logic_reset)
             reg_dmi <= 0;
         else if (select_dmi)
@@ -212,7 +212,7 @@ module dmi_jtag
     end
 
     initial tdo_latch = 1'b0;
-    always_ff @ (negedge i_clk) begin
+    always_ff @ (negedge i_tck) begin
         tdo_latch <= 1'b0;
         if (shift_ir)
             tdo_latch <= reg_instruction[0];
@@ -229,7 +229,7 @@ module dmi_jtag
     initial dmi_error = NO_ERROR;
     initial dmi_data = 0;
     initial dmi_address = 0;
-    always_ff @ (negedge i_clk) begin
+    always_ff @ (negedge i_tck) begin
         if (update_dr)
             if (select_dtmcs)
                 if (reg_dtmcs.dmireset)
