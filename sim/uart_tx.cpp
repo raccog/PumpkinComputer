@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
     MainTestBench<Vuart_tx> tb("uart_tx");
     tb.parseArgs(argc, argv);
 
-    VPRINTF("Starting test bench for `uart_tx`\n");
+    tb.signalStart();
 
     // Ensure reset can be held for a few baud cycles
     tb->i_rst = 1;
@@ -116,5 +116,7 @@ int main(int argc, char **argv) {
     assert(tb->o_busy == 0);
     assert(tb->o_tx == 1);
 
-    VPRINTF("Success: `uart_tx`\n");
+    tb.signalDone();
+
+    return 0;
 }

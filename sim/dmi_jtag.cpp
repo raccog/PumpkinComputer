@@ -132,7 +132,7 @@ int main(int argc, char **argv) {
     MainTestBench<Vdmi_jtag> tb("dmi_jtag");
     tb.parseArgs(argc, argv);
 
-    VPRINTF("Starting test bench for `dmi_jtag`\n");
+    tb.signalStart();
 
     // Ensure that holding TMS high for 5 clock cycles will always reset the
     // JTAG module
@@ -181,6 +181,8 @@ int main(int argc, char **argv) {
     tb->i_tms = 0;
     tb.tick();
     assert(jtagCurrentState() == RUN_TEST_IDLE);
+
+    tb.signalDone();
 
     return 0;
 }

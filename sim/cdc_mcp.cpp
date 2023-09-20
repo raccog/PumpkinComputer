@@ -11,7 +11,9 @@ int main(int argc, char **argv) {
     MainTestBench<Vcdc_mcp> tb("cdc_mcp");
     tb.parseArgs(argc, argv);
 
-    VPRINTF("Starting test bench for `cdc_mcp`\n");
+    tb.signalStart();
+
+    tb.signalDone();
 
     return 0;
 }

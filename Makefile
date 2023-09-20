@@ -1,11 +1,11 @@
 BUILD_DIR ?= build
-SIMULATOR_ARGS ?= -v
+SIMULATOR_ARGS ?=
 CC_ARGS ?= -Wall -O2
 ifdef DEBUG
 	CC_ARGS += -NDEBUG
 endif
 
-MODULES := dmi_jtag uart_tx
+MODULES := dmi_jtag uart_tx cdc_mcp
 EXECUTABLES := $(patsubst %,$(BUILD_DIR)/%_sim,$(MODULES))
 SIMULATOR_TARGETS := $(addprefix simulate-,$(MODULES))
 VCD_FILES := $(addsuffix .vcd,$(MODULES))

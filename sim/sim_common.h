@@ -82,6 +82,12 @@ public:
     }
     // Returns true if running in verbose mode
     bool verbose() {return m_verbose;}
+    void signalStart() {
+        std::cout << "Running test bench for `" << m_moduleName << "`...\n";
+    }
+    void signalDone() {
+        std::cout << "Success.\n";
+    }
 private:
     std::unique_ptr<VerilatorTestBench> m_tb;
     std::unique_ptr<VerilatedVcdC> m_vcd;
