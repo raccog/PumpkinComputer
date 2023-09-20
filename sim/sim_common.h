@@ -69,7 +69,7 @@ public:
         m_tickCount += 1;
     }
     // Simulates multiple clock ticks at once
-    void tick(int ticks) {
+    void ticks(int ticks) {
         for (int i = 0; i < ticks; ++i) {
             tick(false);
         }

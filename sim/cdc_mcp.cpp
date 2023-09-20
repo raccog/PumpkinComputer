@@ -1,2 +1,17 @@
-// NOTE: I have not yet learned if there are any good methods for simulating clock
-// domain crossings. Currently there is no simulator for this.
+#include "Vcdc_mcp.h"
+
+#include "sim_common.h"
+
+// 100 MHz System Clock Rate
+const unsigned SYSTEM_CLOCK_RATE = (100 * 1000 * 1000);
+
+int main(int argc, char **argv) {
+    Verilated::commandArgs(argc, argv);
+
+    MainTestBench<Vcdc_mcp> tb("cdc_mcp");
+    tb.parseArgs(argc, argv);
+
+    VPRINTF("Starting test bench for `cdc_mcp`\n");
+
+    return 0;
+}

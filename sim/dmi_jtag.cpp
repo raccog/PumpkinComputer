@@ -81,7 +81,7 @@ void resetJtag(MainTestBench<Vdmi_jtag> &tb) {
     // After 5 clock ticks with i_tms asserted, the JTAG state should be in
     // Test-Logic Reset.
     tb->i_tms = 1;
-    tb.tick(5);
+    tb.ticks(5);
     assert(jtagCurrentState() == TEST_LOGIC_RESET);
 }
 
@@ -112,7 +112,7 @@ void loadInstruction(MainTestBench<Vdmi_jtag> &tb, JtagInstruction instruction) 
 
     // Move to Shift-IR
     tb->i_tms = 0;
-    tb.tick(2);
+    tb.ticks(2);
 
     // Assert that instruction register resets to fixed pattern
     assert((unsigned)jtagInstructionReg() == IDCODE);
@@ -141,7 +141,7 @@ int main(int argc, char **argv) {
     tb->i_tms = 0;
     tb.tick();
     tb->i_tms = 1;
-    tb.tick(2);
+    tb.ticks(2);
     assert(jtagCurrentState() == SELECT_IR_SCAN);
 
     // Load IDCODE instruction
@@ -157,7 +157,7 @@ int main(int argc, char **argv) {
 
     // Move to Shift-DR
     tb->i_tms = 0;
-    tb.tick(2);
+    tb.ticks(2);
     assert(jtagCurrentState() == SHIFT_DR);
 
     // Shift in IDCODE register

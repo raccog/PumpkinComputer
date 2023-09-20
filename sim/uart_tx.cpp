@@ -10,7 +10,7 @@ const unsigned CYCLES_PER_BAUD = SYSTEM_CLOCK_RATE / BAUD_RATE;
 
 void tickBaud(MainTestBench<Vuart_tx> &tb, unsigned baud_ticks) {
     for (unsigned i = 0; i < baud_ticks; ++i) {
-        tb.tick(CYCLES_PER_BAUD + 1);
+        tb.ticks(CYCLES_PER_BAUD + 1);
     }
 }
 
@@ -24,7 +24,7 @@ void testTransmit(MainTestBench<Vuart_tx> &tb, uint8_t data, bool continuous) {
     if (!tb->o_busy) {
         VPRINTF("IDLE TX: %d (expected: 1)\n", tb->o_tx);
         assert(tb->o_tx == 1);
-        tb.tick(2);
+        tb.ticks(2);
     } else {
         tickBaud(tb, 1);
     }
