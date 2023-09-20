@@ -31,6 +31,10 @@ public:
         m_tb->trace(m_vcd.get(), 99);
         m_vcdPath += fs::path{"vcd"} / fs::path{moduleName + ".vcd"};
         m_vcd->open(m_vcdPath.c_str());
+        if (!m_vcd->isOpen()) {
+            std::cerr << "Failed to open VCD file `" << m_vcdPath << "`. Aborting.\n";
+            exit(1);
+        }
     }
 
     VerilatorTestBench *operator->() {return m_tb.get();}
