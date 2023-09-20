@@ -1,4 +1,5 @@
 BUILD_DIR ?= build
+VCD_DIR ?= vcd
 SIMULATOR_ARGS ?=
 CC_ARGS ?= -Wall -O2
 ifdef DEBUG
@@ -18,22 +19,25 @@ book-serve:
 .PHONY: book-serve
 
 clean:
-	rm -rf $(BUILD_DIR)
+	rm -rf $(BUILD_DIR) $(VCD_DIR)
 .PHONY: clean
 
 simulate-all: $(EXECUTABLES)
+	-mkdir -p $(VCD_DIR)
 	for exe in $^; do $$exe $(SIMULATOR_ARGS); done
 .PHONY: simulate-all	
 
 simulate-%: $(BUILD_DIR)/%_sim
+	-mkdir -p $(VCD_DIR)
 	$< $(SIMULATOR_ARGS)
 .PHONY: simulate-*
 
 %.vcd: $(BUILD_DIR)/%_sim
+	-mkdir -p $(VCD_DIR)
 	$< $(SIMULATOR_ARGS)
-.PRECIOUS: *.vcd
+.PRECIOUS: $(VCD_DIR)/*.vcd
 
-open-vcd-%: %.vcd
+open-vcd-%: $(VCD_DIR)/%.vcd
 	gtkwave $< >/dev/null 2>&1 &
 .PHONY: open-vcd-*
 
