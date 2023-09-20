@@ -101,3 +101,8 @@ private:
     uint64_t m_tickCount;
 };
 
+template <class VerilatorTestBench>
+class MainTestBenchDualClock : public MainTestBench<VerilatorTestBench> {
+public:
+    MainTestBenchDualClock(std::string moduleName) : MainTestBench<VerilatorTestBench>{moduleName} {}
+};

@@ -8,7 +8,7 @@ const unsigned SYSTEM_CLOCK_RATE = (100 * 1000 * 1000);
 int main(int argc, char **argv) {
     Verilated::commandArgs(argc, argv);
 
-    MainTestBench<Vcdc_mcp> tb("cdc_mcp");
+    MainTestBenchDualClock<Vcdc_mcp> tb("cdc_mcp");
     tb.parseArgs(argc, argv);
 
     tb.signalStart();
