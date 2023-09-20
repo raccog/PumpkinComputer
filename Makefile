@@ -7,7 +7,6 @@ endif
 
 MODULES := dmi_jtag uart_tx cdc_mcp
 EXECUTABLES := $(patsubst %,$(BUILD_DIR)/%_sim,$(MODULES))
-SIMULATOR_TARGETS := $(addprefix simulate-,$(MODULES))
 VCD_FILES := $(addsuffix .vcd,$(MODULES))
 VCD_TARGETS := $(addprefix open-vcd-,$(MODULES))
 
@@ -22,7 +21,8 @@ clean:
 	rm -rf $(BUILD_DIR)
 .PHONY: clean
 
-simulate-all: $(SIMULATOR_TARGETS)
+simulate-all: $(EXECUTABLES)
+	for exe in $^; do $$exe $(SIMULATOR_ARGS); done
 .PHONY: simulate-all	
 
 simulate-%: $(BUILD_DIR)/%_sim
